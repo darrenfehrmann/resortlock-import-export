@@ -10,7 +10,8 @@ class ExcelSpreadsheet
   def add_worksheet(name)
     new_worksheet = ExcelWorksheet.new(@workbook.Worksheets.Add, name)
 
-    # Remove the default Sheet1, Sheet2, and Sheet3 worksheets that Excel automatically creates
+    # Remove the default Sheet1, Sheet2, and Sheet3 worksheets that Excel automatically creates.
+    # We have to do this after a new sheet is added because Excel will not allow all the worksheets to be deleted.
     @workbook.worksheets.each { |ws| ws.delete if ws.name =~ /^Sheet\d$/ }
 
     new_worksheet
@@ -45,5 +46,9 @@ class ExcelWorksheet
       current_column_letter = (current_column_letter.ord + 1).chr
     end
     @current_row_number = @current_row_number + 1
+  end
+
+  def autofit(number_of_columns)
+    @worksheet.range("A:#{('A'.ord + number_of_columns).chr}").Columns.Autofit
   end
 end
