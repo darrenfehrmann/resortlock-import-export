@@ -16,3 +16,6 @@ tmp
 .yardoc
 _yardoc
 doc/
+
+# IntelliJ Idea/Rubymine files
+.idea
