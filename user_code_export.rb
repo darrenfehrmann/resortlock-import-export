@@ -71,23 +71,7 @@ def remove_ignored_locks(lock_names, locks)
   end
 end
 
-def find_people_assigned_to_lock(lock, lock_assignments, people)
-  assignees = []
-  lock_assignments.each do |lock_assignment|
-    next if lock[:id] != lock_assignment[:lock_id]
-
-    assignee = people.detect { |person| person[:id] == lock_assignment[:person_id] }
-
-    if !assignee.nil?
-      assignees.push(assignee)
-    end
-  end
-
-  assignees.sort! { |a, b| a[:last_name] <=> b[:last_name] }
-  assignees
-end
-
-configuration = YAML.load_file('user_code_config.yml')
+configuration = YAML.load_file('config.yml')
 
 db_reader = DbReader.new(configuration['db_file'])
 people_data = db_reader.fetch('SELECT KeyID, FirstName, LastName, Status, KeyCode, Department, Address, Title, ContactInfor FROM KeyManagement')
@@ -134,4 +118,4 @@ end
 
 worksheet.autofit(7+locks.length)
 
-spreadsheet.save_and_close(configuration['export_directory'], configuration['filename_prefix'])
+spreadsheet.save_and_close(configuration['export_directory'], configuration['user_code_filename_prefix'])

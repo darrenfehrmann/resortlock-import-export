@@ -26,7 +26,7 @@ def map_to_event_hash(data)
   events
 end
 
-configuration = YAML.load_file('audit_trail_config.yml')
+configuration = YAML.load_file('config.yml')
 
 db_reader = DbReader.new(configuration['db_file'])
 data = db_reader.fetch('SELECT SerialID, FirstName, LastName, OpenLockType, OpenLockTime, Status, Department, LockName, LockLocation, CodeType FROM RecordInfor')
@@ -54,4 +54,4 @@ events.each do |event|
   )
 end
 
-spreadsheet.save_and_close(configuration['export_directory'], configuration['filename_prefix'])
+spreadsheet.save_and_close(configuration['export_directory'], configuration['audit_trail_filename_prefix'])

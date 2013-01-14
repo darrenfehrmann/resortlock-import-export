@@ -1,0 +1,9 @@
+db_file: C:\Program Files\ResortLock3.7\iKeypadLockDB.mdb
+export_directory: C:\Users\Darren\Documents\Excel\resortlock-import-export\exports
+
+audit_trail_filename_prefix: audit_trail_
+membership_filename_prefix: membership_
+user_code_filename_prefix: user_code_
+
+ignore_these_locks:
+  - Music - Practice 1

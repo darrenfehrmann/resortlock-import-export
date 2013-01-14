@@ -87,7 +87,7 @@ def find_people_assigned_to_lock(lock, lock_assignments, people)
   assignees
 end
 
-configuration = YAML.load_file('membership_config.yml')
+configuration = YAML.load_file('config.yml')
 
 db_reader = DbReader.new(configuration['db_file'])
 people_data = db_reader.fetch('SELECT KeyID, FirstName, LastName, Status, KeyCode, Department, Address, Title, ContactInfor FROM KeyManagement')
@@ -125,4 +125,4 @@ locks.each do |lock|
   worksheet.autofit(6)
 end
 
-spreadsheet.save_and_close(configuration['export_directory'], configuration['filename_prefix'])
+spreadsheet.save_and_close(configuration['export_directory'], configuration['membership_filename_prefix'])
