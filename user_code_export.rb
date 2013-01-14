@@ -87,7 +87,7 @@ def find_people_assigned_to_lock(lock, lock_assignments, people)
   assignees
 end
 
-configuration = YAML.load_file('membership_config.yml')
+configuration = YAML.load_file('user_code_config.yml')
 
 db_reader = DbReader.new(configuration['db_file'])
 people_data = db_reader.fetch('SELECT KeyID, FirstName, LastName, Status, KeyCode, Department, Address, Title, ContactInfor FROM KeyManagement')
@@ -98,31 +98,40 @@ people = map_to_people_hash(people_data)
 locks = map_to_locks_hash(lock_data)
 lock_assignments = map_to_lock_assignments_hash(people_lock_data)
 
-remove_ignored_locks(configuration['ignore_these_locks'], locks)
+people.sort! { |a, b| a[:last_name] <=> b[:last_name] }
 
-# Reverse sort the locks since the worksheets will be added in reverse order
-locks.sort! { |a, b| b[:name] <=> a[:name] }
+remove_ignored_locks(configuration['ignore_these_locks'], locks)
+locks.sort! { |a, b| a[:name] <=> b[:name] }
 
 spreadsheet = ExcelSpreadsheet.new
 
-locks.each do |lock|
-  assignees = find_people_assigned_to_lock(lock, lock_assignments, people)
+worksheet = spreadsheet.add_worksheet('Codes')
+heading_row = ['First Name', 'Last Name', 'Email', 'Phone', 'Suite', 'Status', 'Code']
+locks.each { |lock| heading_row.push(lock[:name]) }
+worksheet.add_row(heading_row)
 
-  worksheet = spreadsheet.add_worksheet(lock[:name])
-  worksheet.add_row(['First Name', 'Last Name', 'Email', 'Phone', 'Suite', 'Status'])
-
-  assignees.each do |assignee|
-    worksheet.add_row(
-        [
-            assignee[:first_name],
-            assignee[:last_name],
-            assignee[:email],
-            assignee[:phone],
-            assignee[:suite],
-            assignee[:status]
-        ])
+people.each do |person|
+  data_row = [
+              person[:first_name],
+              person[:last_name],
+              person[:email],
+              person[:phone],
+              person[:suite],
+              person[:status],
+              person[:code]
+          ]
+  locks.each do |lock|
+    assignment = lock_assignments.detect { |lock_assignment| lock_assignment[:lock_id] == lock[:id] && lock_assignment[:person_id] == person[:id] }
+    if !assignment.nil?
+      data_row.push(lock[:name])
+    else
+      data_row.push('')
+    end
   end
-  worksheet.autofit(6)
+
+  worksheet.add_row(data_row)
 end
+
+worksheet.autofit(7+locks.length)
 
 spreadsheet.save_and_close(configuration['export_directory'], configuration['filename_prefix'])
