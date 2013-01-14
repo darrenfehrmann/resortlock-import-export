@@ -4,7 +4,7 @@ require_relative 'excel_spreadsheet'
 require 'pp'
 require 'yaml'
 
-def convert_to_hash(data)
+def map_to_event_hash(data)
   events = []
   data.each do |row|
 
@@ -31,7 +31,7 @@ configuration = YAML.load_file('audit_trail_config.yml')
 db_reader = DbReader.new(configuration['db_file'])
 data = db_reader.fetch('SELECT SerialID, FirstName, LastName, OpenLockType, OpenLockTime, Status, Department, LockName, LockLocation, CodeType FROM RecordInfor')
 
-events = convert_to_hash(data)
+events = map_to_event_hash(data)
 
 spreadsheet = ExcelSpreadsheet.new
 worksheet = spreadsheet.add_worksheet('Export')
