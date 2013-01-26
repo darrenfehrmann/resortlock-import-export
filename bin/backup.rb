@@ -16,7 +16,7 @@ configuration = YAML.load_file(config_file)
 dump_error_and_exit_if_backup_configuration_missing(config_file, configuration)
 
 db = Access2000Database.new(configuration['db_file'])
-people_data = db.fetch('SELECT KeyID, FirstName, LastName, Status, KeyCode, Department, Address, Title, ContactInfor FROM KeyManagement')
+people_data = db.fetch('SELECT KeyID, FirstName, LastName, Status, KeyCode, Department, Address, Title, ContactInfor, UserType, ExpDate FROM KeyManagement')
 lock_data = db.fetch('SELECT LockID, SerialID, LockName, LockLocation, LockStatusID, LockType FROM LockManagement')
 people_lock_data = db.fetch('SELECT LockID, KeyID, SerialID, FirstName, LastName, TimeShiftID, ActExpDateID, ExpDateID, Status, Department, Title, Address, ContactInfor, LastSetupTime, UserType, KeyCode, ExpDate FROM LockKeyManagement')
 event_data = db.fetch('SELECT SerialID, FirstName, LastName, OpenLockType, OpenLockTime, Status, Department, LockName, LockLocation, CodeType FROM RecordInfor')
@@ -30,7 +30,7 @@ current_time = Time.now
 
 # Export people as CSV
 CSV.open(csv_filename('people', current_time, configuration['backup_directory']), "wb") do |csv|
-  heading_row = %w{KeyID FirstName LastName Status KeyCode Department Address Title ContactInfor}
+  heading_row = %w{KeyID FirstName LastName Status KeyCode Department Address Title ContactInfor, UserType, ExpDate}
   csv << heading_row
   
   people.each do |person|
@@ -43,7 +43,9 @@ CSV.open(csv_filename('people', current_time, configuration['backup_directory'])
                 person[:email],
                 person[:suite],
                 person[:phone],
-                ''
+                '',
+                person[:user_type],
+                person[:exp_date]
             ]
     csv << data_row
   end

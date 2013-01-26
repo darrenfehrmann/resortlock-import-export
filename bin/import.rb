@@ -116,12 +116,14 @@ def restore_people(import_directory, db)
         person[:address] = row[6].nil? ? '' : row[6]
         person[:title] = row[7].nil? ? '' : row[7]
         person[:contact_infor] = row[8].nil? ? '' : row[8]
+        person[:user_type] = row[9].nil? ? '' : row[9]
+        person[:exp_date] = row[10].nil? ? '' : row[10]
 
         insert_sql = 'INSERT INTO KeyManagement ' +
-            "(KeyID, FirstName, LastName, Status, KeyCode, Department, Address, Title, ContactInfor) " +
+            "(KeyID, FirstName, LastName, Status, KeyCode, Department, Address, Title, ContactInfor, UserType, ExpDate) " +
             "VALUES ('#{person[:key_id]}', '#{person[:first_name]}', '#{person[:last_name]}', '#{person[:status]}', " +
             "'#{person[:key_code]}', '#{person[:department]}', '#{person[:address]}', '#{person[:title]}', " +
-            "'#{person[:contact_infor]}')"
+            "'#{person[:contact_infor]}', '#{person[:user_type]}', #{person[:exp_date].to_s})"
 
         db.execute(insert_sql)
       end

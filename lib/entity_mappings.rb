@@ -19,6 +19,18 @@ def map_to_people_hash(data)
       person[:phone] = ''
     end
 
+    if row[9] != nil && !row[9].empty?
+      person[:user_type] = row[9].strip
+    else
+      person[:user_type] = ''
+    end
+
+    if row[10] != nil
+      person[:exp_date] = row[10]
+    else
+      person[:exp_date] = false
+    end
+
     people.push(person)
   end
 
