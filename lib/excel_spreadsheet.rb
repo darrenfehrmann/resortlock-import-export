@@ -39,11 +39,32 @@ class ExcelWorksheet
     @current_row_number = 1
   end
 
-  def add_row(data)
+  def add_row(data, formatting = {})
     current_column_letter = 'A'
     data.each do |item|
-      @worksheet.range(current_column_letter + @current_row_number.to_s).Value = item
+      range = current_column_letter + @current_row_number.to_s
+
+      if formatting.has_key?(:columns_to_format_as_text) and formatting[:columns_to_format_as_text].include?(current_column_letter)
+        @worksheet.range(range).NumberFormat = "\@"
+      end
+
+      if formatting.has_key?(:all_caps) and formatting[:all_caps]
+        @worksheet.range(range).Value = item.to_s.upcase
+      else
+        @worksheet.range(range).Value = item
+      end
+
+      if formatting.has_key?(:bold) and formatting[:bold]
+        @worksheet.range(range).font.bold = "True"
+      end
+      if formatting.has_key?(:font_size)
+        @worksheet.range(range).font.size = formatting[:font_size]
+      end
+
       current_column_letter = (current_column_letter.ord + 1).chr
+    end
+    if formatting.has_key?(:merge_columns) and formatting[:merge_columns]
+      @worksheet.range("A#{@current_row_number}:#{('A'.ord + formatting[:merge_columns]-1).chr}#{@current_row_number}").merge
     end
     @current_row_number = @current_row_number + 1
   end

@@ -1,5 +1,9 @@
 db_file: C:\Program Files\ResortLock3.7\iKeypadLockDB.mdb
-export_directory: C:\Users\Darren\Documents\Excel\resortlock-import-export\exports
+#db_file: C:\Program Files\ResortLock3.7\iKeypadLockDB - Copy.mdb
+#db_file: C:\Program Files\ResortLock3.7\iKeypadLockDB-machine.mdb
+export_directory: C:\Users\Darren\Documents\Excel\resortlock-import-export\reports
+import_directory: C:\Users\Darren\Documents\Excel\resortlock-import-export\imports
+backup_directory: C:\Users\Darren\Documents\Excel\resortlock-import-export\backups
 
 audit_trail_filename_prefix: audit_trail_
 membership_filename_prefix: membership_

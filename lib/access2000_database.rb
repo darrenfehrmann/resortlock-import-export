@@ -1,6 +1,6 @@
 require 'win32ole'
 
-class DbReader
+class Access2000Database
   def initialize(db_file_path)
     @db_file_path = db_file_path
 
@@ -45,8 +45,10 @@ class DbReader
   end
 
   def connect
+    return if !@connection.nil?
+
     @connection = WIN32OLE.new('ADODB.Connection')
-    @connection.open("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=#{@db_file_path}; Jet OLEDB:Database Password=#{@db_password}")
+    @connection.open("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=#{@db_file_path}; Jet OLEDB:Database Password=#{@db_password};")#Extended Properties=\"IMEX=1\"")
   end
 
   def fetch(sql)
@@ -55,9 +57,24 @@ class DbReader
  		recordset = WIN32OLE.new('ADODB.Recordset')
  		recordset.open(sql, @connection)
 
- 		data = recordset.GetRows.transpose
+    if !recordset.eof
+ 		  data = recordset.GetRows.transpose
+    else
+      data = []
+    end
+
     recordset.close
 
     data
+  end
+
+  def delete_all_from_table(table_name)
+    execute("DELETE FROM #{table_name}")
  	end
+
+ 	def execute(sql)
+    connect
+    @connection.execute(sql)
+ 	end
+
 end
