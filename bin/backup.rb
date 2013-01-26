@@ -30,7 +30,7 @@ current_time = Time.now
 
 # Export people as CSV
 CSV.open(csv_filename('people', current_time, configuration['backup_directory']), "wb") do |csv|
-  heading_row = %w{KeyID FirstName LastName Status KeyCode Department Address Title ContactInfor, UserType, ExpDate}
+  heading_row = %w{KeyID FirstName LastName Status KeyCode Department Address Title ContactInfor UserType ExpDate}
   csv << heading_row
   
   people.each do |person|
