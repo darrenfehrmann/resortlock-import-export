@@ -1,0 +1,16 @@
+db_file: C:\Program Files\ResortLock3.7\iKeypadLockDB.mdb
+
+export_directory: C:\Users\edge\Documents\reports
+import_directory: C:\Users\edge\Documents\imports
+backup_directory: C:\Users\edge\Documents\backups
+
+audit_trail_filename_prefix: audit_trail_
+membership_filename_prefix: membership_
+user_code_filename_prefix: user_code_
+
+ignore_these_locks:
+  - Music Practice 1
+  - Music Practice 2
+  - Music Practice 3
+  - Music Sound
+  - Music Storage
