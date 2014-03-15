@@ -1,0 +1,18 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    axlsx (2.0.1)
+      htmlentities (~> 4.3.1)
+      nokogiri (>= 1.4.1)
+      rubyzip (~> 1.0.0)
+    htmlentities (4.3.1)
+    mini_portile (0.5.2)
+    nokogiri (1.6.1-x86-mingw32)
+      mini_portile (~> 0.5.0)
+    rubyzip (1.0.0)
+
+PLATFORMS
+  x86-mingw32
+
+DEPENDENCIES
+  axlsx (~> 2.0)

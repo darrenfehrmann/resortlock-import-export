@@ -1,10 +1,11 @@
 require_relative '../lib/access2000_database'
-require_relative '../lib/excel_spreadsheet'
+#require_relative '../lib/excel_spreadsheet'
 require_relative '../lib/entity_mappings'
 require_relative '../lib/error_checking'
 
 require 'pp'
 require 'yaml'
+require 'axlsx'
 
 config_file = File.join(File.dirname(__FILE__), '../config.yml')
 dump_error_and_exit_if_file_missing(config_file)
@@ -25,33 +26,40 @@ events.each do |event|
   events_split_by_location[event[:lock_location]].push(event)
 end
 
-spreadsheet = ExcelSpreadsheet.new
+Axlsx::Package.new :author => 'ABC Technical Support Group' do |spreadsheet|
+  spreadsheet.workbook.use_autowidth = true
+  spreadsheet.workbook.styles do |style|
+    events_split_by_location.each_key do |lock_location|
+      events_split_by_location[lock_location].sort! do |a, b|
+        a[:open_lock_time] <=> b[:open_lock_time]
+      end
+      events_split_by_location[lock_location].reverse!  # Sort by most recent event at the top
 
-events_split_by_location.each_key do |lock_location|
-  events_split_by_location[lock_location].sort! do |a, b|
-    a[:open_lock_time] <=> b[:open_lock_time]
+      bold_style = style.add_style :b => true
+      numeric_style = style.add_style :alignment => { :horizontal => :right }
+      date_style = style.add_style :format_code => 'd-mmm-yyyy h:mm:ss AM/PM'
+      spreadsheet.workbook.add_worksheet(:name => lock_location) do |worksheet|
+        title_row_data = ['First Name', 'Last Name', 'Code', 'Lock Type', 'Lock', 'Lock Location', 'Time', 'Status', 'Code Type']
+        worksheet.add_row(title_row_data, style: [bold_style] * title_row_data.length)
+
+        events_split_by_location[lock_location].each do |event|
+          worksheet.add_row(
+              [
+                  event[:first_name],
+                  event[:last_name],
+                  event[:code],
+                  event[:open_lock_type],
+                  event[:lock_name],
+                  event[:lock_location],
+                  event[:open_lock_time],
+                  event[:status],
+                  event[:code_type]
+              ], style: [nil, nil, numeric_style, nil, nil, nil, date_style, nil, nil]
+          )
+        end
+      end
+    end
   end
-  events_split_by_location[lock_location].reverse!  # Sort by most recent event at the top
-
-  worksheet = spreadsheet.add_worksheet(lock_location)
-  worksheet.add_row(['First Name', 'Last Name', 'Code', 'Lock Type', 'Lock', 'Lock Location', 'Time', 'Status', 'Code Type'], {bold: true})
-
-  events_split_by_location[lock_location].each do |event|
-    worksheet.add_row(
-     [
-        event[:first_name],
-        event[:last_name],
-        event[:code],
-        event[:open_lock_type],
-        event[:lock_name],
-        event[:lock_location],
-        event[:open_lock_time],
-        event[:status],
-        event[:code_type]
-     ], {columns_to_format_as_text: ['C']}
-    )
-  end
-  worksheet.autofit(10)
+  filename = File.join(configuration['export_directory'], configuration['audit_trail_filename_prefix'] + Time.now.strftime('%Y-%m-%d_%H-%M') + '.xlsx')
+  spreadsheet.serialize(filename)
 end
-
-spreadsheet.save_and_close(configuration['export_directory'], configuration['audit_trail_filename_prefix'])
