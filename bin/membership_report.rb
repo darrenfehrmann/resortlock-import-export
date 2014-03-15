@@ -1,10 +1,10 @@
 require_relative '../lib/access2000_database'
-require_relative '../lib/excel_spreadsheet'
 require_relative '../lib/entity_mappings'
 require_relative '../lib/error_checking'
 
 require 'pp'
 require 'yaml'
+require 'axlsx'
 
 def find_people_assigned_to_lock(lock, lock_assignments, people)
   assignees = []
@@ -43,27 +43,35 @@ end
 # Reverse sort the locks since the worksheets will be added in reverse order
 locks.sort! { |a, b| b[:name] <=> a[:name] }
 
-spreadsheet = ExcelSpreadsheet.new
+Axlsx::Package.new :author => 'ABC Technical Support Group' do |spreadsheet|
+  spreadsheet.workbook.use_autowidth = true
+  spreadsheet.workbook.styles do |style|
+    bold_style = style.add_style :b => true
+    numeric_style = style.add_style :alignment => { :horizontal => :right }
+    title_row_style = style.add_style :sz => 18, :b => true
 
-locks.each do |lock|
-  assignees = find_people_assigned_to_lock(lock, lock_assignments, people)
+    locks.each do |lock|
+      assignees = find_people_assigned_to_lock(lock, lock_assignments, people)
 
-  worksheet = spreadsheet.add_worksheet(lock[:name])
-  worksheet.add_row([lock[:location]], {bold: true, font_size: 18, merge_columns: 6, all_caps: true})
-  worksheet.add_row(['First Name', 'Last Name', 'Email', 'Phone', 'Suite', 'Status'], {bold: true})
+      spreadsheet.workbook.add_worksheet(:name => lock[:name]) do |worksheet|
+        worksheet.add_row([lock[:location].to_s.upcase], style: [title_row_style])
+        worksheet.merge_cells "A1:F1"
+        worksheet.add_row(['First Name', 'Last Name', 'Email', 'Phone', 'Suite', 'Status'], style: [bold_style] * 6)
 
-  assignees.each do |assignee|
-    worksheet.add_row(
-        [
-            assignee[:first_name],
-            assignee[:last_name],
-            assignee[:email],
-            assignee[:phone],
-            assignee[:suite],
-            assignee[:status]
-        ])
+        assignees.each do |assignee|
+          worksheet.add_row(
+              [
+                  assignee[:first_name],
+                  assignee[:last_name],
+                  assignee[:email],
+                  assignee[:phone],
+                  assignee[:suite],
+                  assignee[:status]
+              ], style: [nil, nil, nil, nil, numeric_style, nil] )
+        end
+      end
+    end
   end
-  worksheet.autofit(6)
+  filename = File.join(configuration['export_directory'], configuration['membership_filename_prefix'] + Time.now.strftime('%Y-%m-%d_%H-%M') + '.xlsx')
+  spreadsheet.serialize(filename)
 end
-
-spreadsheet.save_and_close(configuration['export_directory'], configuration['membership_filename_prefix'])

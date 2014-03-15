@@ -5,6 +5,7 @@ require_relative '../lib/error_checking'
 
 require 'pp'
 require 'yaml'
+require 'axlsx'
 
 config_file = File.join(File.dirname(__FILE__), '../config.yml')
 dump_error_and_exit_if_file_missing(config_file)
@@ -27,35 +28,40 @@ if configuration.has_key?('ignore_these_locks')
 end
 locks.sort! { |a, b| a[:name] <=> b[:name] }
 
-spreadsheet = ExcelSpreadsheet.new
+Axlsx::Package.new :author => 'ABC Technical Support Group' do |spreadsheet|
+  spreadsheet.workbook.use_autowidth = true
+  spreadsheet.workbook.styles do |style|
+    bold_style = style.add_style :b => true
+    numeric_style = style.add_style :alignment => { :horizontal => :right }
 
-worksheet = spreadsheet.add_worksheet('Codes')
-heading_row = ['First Name', 'Last Name', 'Email', 'Phone', 'Suite', 'Status', 'Code']
-locks.each { |lock| heading_row.push(lock[:name]) }
-worksheet.add_row(heading_row, {bold: true})
+    spreadsheet.workbook.add_worksheet(:name => 'Codes') do |worksheet|
+      title_row_data = ['First Name', 'Last Name', 'Email', 'Phone', 'Suite', 'Status', 'Code']
+      locks.each { |lock| title_row_data.push(lock[:name]) }
+      worksheet.add_row(title_row_data, style: [bold_style] * title_row_data.length)
 
-people.each do |person|
-  data_row = [
-              person[:first_name],
-              person[:last_name],
-              person[:email],
-              person[:phone],
-              person[:suite],
-              person[:status],
-              person[:code]
-          ]
-  locks.each do |lock|
-    assignment = lock_assignments.detect { |lock_assignment| lock_assignment[:lock_id] == lock[:id] && lock_assignment[:person_id] == person[:id] }
-    if !assignment.nil?
-      data_row.push(lock[:name])
-    else
-      data_row.push('')
+      people.each do |person|
+        data_row = [
+            person[:first_name],
+            person[:last_name],
+            person[:email],
+            person[:phone],
+            person[:suite],
+            person[:status],
+            person[:code]
+        ]
+        locks.each do |lock|
+          assignment = lock_assignments.detect { |lock_assignment| lock_assignment[:lock_id] == lock[:id] && lock_assignment[:person_id] == person[:id] }
+          if !assignment.nil?
+            data_row.push(lock[:name])
+          else
+            data_row.push('')
+          end
+        end
+
+        worksheet.add_row(data_row)
+      end
     end
   end
-
-  worksheet.add_row(data_row, {columns_to_format_as_text: ['G']})
+  filename = File.join(configuration['export_directory'], configuration['user_code_filename_prefix'] + Time.now.strftime('%Y-%m-%d_%H-%M') + '.xlsx')
+    spreadsheet.serialize(filename)
 end
-
-worksheet.autofit(7+locks.length)
-
-spreadsheet.save_and_close(configuration['export_directory'], configuration['user_code_filename_prefix'])
