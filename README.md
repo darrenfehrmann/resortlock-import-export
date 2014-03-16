@@ -17,6 +17,7 @@ gem install bundler
 bundle install
 ````
 This will install the libraries that the scripts use to create .zip files and the .xlsx reports.
+
 8. Create a shortcut to the run_reports_and_backups.bat file on the desktop.
 
 ## Other notes
