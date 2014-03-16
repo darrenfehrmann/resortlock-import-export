@@ -1,5 +1,5 @@
 GEM
-  remote: https://rubygems.org/
+  remote: http://rubygems.org/
   specs:
     axlsx (2.0.1)
       htmlentities (~> 4.3.1)
