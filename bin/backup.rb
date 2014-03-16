@@ -5,6 +5,7 @@ require_relative '../lib/error_checking'
 require 'pp'
 require 'yaml'
 require 'csv'
+require 'zip'
 
 def csv_filename(entity_to_backup, current_time, backup_directory)
   File.join(backup_directory, current_time.strftime('%Y-%m-%d_%H-%M') + '_backup_' + entity_to_backup + '.csv')
@@ -28,8 +29,13 @@ events = map_to_event_hash(event_data)
 
 current_time = Time.now
 
+people_filename = csv_filename('people', current_time, configuration['backup_directory'])
+locks_filename = csv_filename('locks', current_time, configuration['backup_directory'])
+lock_assignments_filename = csv_filename('lock_assignments', current_time, configuration['backup_directory'])
+access_events_filename = csv_filename('access_events', current_time, configuration['backup_directory'])
+
 # Export people as CSV
-CSV.open(csv_filename('people', current_time, configuration['backup_directory']), "wb") do |csv|
+CSV.open(people_filename, "wb") do |csv|
   heading_row = %w{KeyID FirstName LastName Status KeyCode Department Address Title ContactInfor UserType ExpDate}
   csv << heading_row
   
@@ -52,7 +58,7 @@ CSV.open(csv_filename('people', current_time, configuration['backup_directory'])
 end
 
 # Export locks as CSV
-CSV.open(csv_filename('locks', current_time, configuration['backup_directory']), "wb") do |csv|
+CSV.open(locks_filename, "wb") do |csv|
   heading_row = %w{LockID SerialID LockName LockLocation LockStatusID LockType}
   csv << heading_row
   
@@ -70,7 +76,7 @@ CSV.open(csv_filename('locks', current_time, configuration['backup_directory']),
 end
 
 # Export lock assignments as CSV
-CSV.open(csv_filename('lock_assignments', current_time, configuration['backup_directory']), "wb") do |csv|
+CSV.open(lock_assignments_filename, "wb") do |csv|
   heading_row = %w{LockID KeyID SerialID FirstName LastName TimeShiftID ActExpDateID ExpDateID Status Department Title Address ContactInfor LastSetupTime UserType KeyCode ExpDate}
   csv << heading_row
   
@@ -99,7 +105,7 @@ CSV.open(csv_filename('lock_assignments', current_time, configuration['backup_di
 end
 
 # Export access events as CSV
-CSV.open(csv_filename('access_events', current_time, configuration['backup_directory']), "wb") do |csv|
+CSV.open(access_events_filename, "wb") do |csv|
   heading_row = %w{SerialID FirstName LastName OpenLockType OpenLockTime Status Department LockName LockLocation CodeType}
   csv << heading_row
   
@@ -119,3 +125,20 @@ CSV.open(csv_filename('access_events', current_time, configuration['backup_direc
     csv << data_row
   end
 end
+
+zipfile_name = File.join(configuration['backup_directory'], 'lock_backup_' + current_time.strftime('%Y-%m-%d_%H-%M') + '.zip')
+if File.exists? zipfile_name
+  File.delete zipfile_name
+end
+
+Zip::File.open(zipfile_name, Zip::File::CREATE) do |zipfile|
+  zipfile.add(File.basename(people_filename), people_filename)
+  zipfile.add(File.basename(locks_filename), locks_filename)
+  zipfile.add(File.basename(lock_assignments_filename), lock_assignments_filename)
+  zipfile.add(File.basename(access_events_filename), access_events_filename)
+end
+
+File.delete people_filename
+File.delete locks_filename
+File.delete lock_assignments_filename
+File.delete access_events_filename

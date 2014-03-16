@@ -16,3 +16,4 @@ PLATFORMS
 
 DEPENDENCIES
   axlsx (~> 2.0)
+  rubyzip (>= 1.0)
